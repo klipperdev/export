@@ -1,0 +1,31 @@
+{
+    "name": "klipper/export",
+    "type": "library",
+    "description": "Export component of Klipper",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "François Pluchino",
+            "email": "francois.pluchino@klipper.dev"
+        }
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "require": {
+        "php": "^7.4.0",
+        "klipper/metadata": "^2.0.0",
+        "klipper/resource": "^2.0.0",
+        "phpoffice/phpspreadsheet": "^1.15.0"
+    },
+    "autoload": {
+        "psr-4": { "Klipper\\Component\\Export\\": "" },
+        "exclude-from-classmap": [
+            "**/Tests/"
+        ]
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "2.0-dev"
+        }
+    }
+}
