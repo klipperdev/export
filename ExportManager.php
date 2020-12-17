@@ -149,8 +149,14 @@ class ExportManager implements ExportManagerInterface
     private function getExportedColumns(ObjectMetadataInterface $metadata, array $fields): array
     {
         $validFields = [];
+        $addDefaultFields = false;
 
-        if (empty($fields)) {
+        if (\count($fields) > 0 && '+' === $fields[0]) {
+            $addDefaultFields = true;
+            array_shift($fields);
+        }
+
+        if (empty($fields) || $addDefaultFields) {
             foreach ($metadata->getFields() as $fieldMetadata) {
                 $fields[] = $fieldMetadata->getField();
             }
