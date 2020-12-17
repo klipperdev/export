@@ -12,6 +12,8 @@
 namespace Klipper\Component\Export;
 
 use Doctrine\ORM\Query;
+use Klipper\Component\Export\Exception\ExportNotFoundException;
+use Klipper\Component\Export\Exception\InvalidArgumentException;
 use Klipper\Component\Export\Exception\InvalidFormatException;
 use Klipper\Component\Export\Exception\RuntimeException;
 use Klipper\Component\Metadata\ObjectMetadataInterface;
@@ -27,9 +29,13 @@ interface ExportManagerInterface
      * @param ObjectMetadataInterface|string $rootMetadata
      * @param string[]                       $fields       The selected field or associations paths
      *                                                     By default, only the fields of the root metadata
+     * @param bool                           $headerLabels Check if the first column display the translated labels
+     *                                                     or the property paths
      *
      * @throws InvalidFormatException
+     * @throws InvalidArgumentException
+     * @throws ExportNotFoundException
      * @throws RuntimeException
      */
-    public function exportQuery($rootMetadata, Query $query, array $fields = [], string $format = 'xlsx'): ExportedDataInterface;
+    public function exportQuery($rootMetadata, Query $query, array $fields = [], string $format = 'xlsx', bool $headerLabels = true): ExportedDataInterface;
 }

@@ -11,22 +11,12 @@
 
 namespace Klipper\Component\Export;
 
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Writer\IWriter;
-
 /**
  * @author François Pluchino <francois.pluchino@klipper.dev>
  */
-interface ExportedDataInterface
+interface ExportedColumnInterface
 {
-    public function getSpreadsheet(): Spreadsheet;
+    public function getLabel(): string;
 
-    public function getWriter(): IWriter;
-
-    public function getMimeType(): string;
-
-    /**
-     * @return ExportedColumnInterface[]
-     */
-    public function getColumns(): array;
+    public function getPropertyPath(): string;
 }

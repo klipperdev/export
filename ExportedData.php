@@ -25,11 +25,20 @@ class ExportedData implements ExportedDataInterface
 
     private string $mimeType;
 
-    public function __construct(Spreadsheet $spreadsheet, IWriter $writer, string $mimeType)
+    /**
+     * @var ExportedColumnInterface[]
+     */
+    private array $columns;
+
+    /**
+     * @param ExportedColumnInterface[] $columns
+     */
+    public function __construct(Spreadsheet $spreadsheet, IWriter $writer, string $mimeType, array $columns)
     {
         $this->spreadsheet = $spreadsheet;
         $this->writer = $writer;
         $this->mimeType = $mimeType;
+        $this->columns = $columns;
     }
 
     public function getSpreadsheet(): Spreadsheet
@@ -45,5 +54,10 @@ class ExportedData implements ExportedDataInterface
     public function getMimeType(): string
     {
         return $this->mimeType;
+    }
+
+    public function getColumns(): array
+    {
+        return $this->columns;
     }
 }
