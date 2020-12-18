@@ -11,6 +11,8 @@
 
 namespace Klipper\Component\Export;
 
+use Klipper\Component\Metadata\ChildMetadataInterface;
+
 /**
  * @author François Pluchino <francois.pluchino@klipper.dev>
  */
@@ -20,10 +22,13 @@ class ExportedColumn implements ExportedColumnInterface
 
     private string $propertyPath;
 
-    public function __construct(string $label, string $propertyPath)
+    private ChildMetadataInterface $metadata;
+
+    public function __construct(string $label, string $propertyPath, ChildMetadataInterface $metadata)
     {
         $this->label = $label;
         $this->propertyPath = $propertyPath;
+        $this->metadata = $metadata;
     }
 
     public function getLabel(): string
@@ -34,5 +39,10 @@ class ExportedColumn implements ExportedColumnInterface
     public function getPropertyPath(): string
     {
         return $this->propertyPath;
+    }
+
+    public function getMetadata(): ChildMetadataInterface
+    {
+        return $this->metadata;
     }
 }

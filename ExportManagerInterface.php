@@ -16,6 +16,7 @@ use Klipper\Component\Export\Exception\ExportNotFoundException;
 use Klipper\Component\Export\Exception\InvalidArgumentException;
 use Klipper\Component\Export\Exception\InvalidFormatException;
 use Klipper\Component\Export\Exception\RuntimeException;
+use Klipper\Component\Export\ViewTransformer\ExportViewTransformerInterface;
 use Klipper\Component\Metadata\ObjectMetadataInterface;
 
 /**
@@ -23,6 +24,8 @@ use Klipper\Component\Metadata\ObjectMetadataInterface;
  */
 interface ExportManagerInterface
 {
+    public function addViewTransformer(ExportViewTransformerInterface $viewTransformer): void;
+
     /**
      * Build the export data.
      *

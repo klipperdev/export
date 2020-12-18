@@ -17,6 +17,7 @@ use Klipper\Component\Export\Exception\ExportNotFoundException;
 use Klipper\Component\Export\Exception\InvalidArgumentException;
 use Klipper\Component\Export\Exception\InvalidFormatException;
 use Klipper\Component\Export\Exception\RuntimeException;
+use Klipper\Component\Export\ViewTransformer\ExportViewTransformerInterface;
 use Klipper\Component\Metadata\AssociationMetadataInterface;
 use Klipper\Component\Metadata\Exception\ObjectMetadataNotFoundException;
 use Klipper\Component\Metadata\FieldMetadataInterface;
@@ -54,6 +55,11 @@ class ExportManager implements ExportManagerInterface
 
     private int $batchSize;
 
+    /**
+     * @var ExportViewTransformerInterface[]
+     */
+    private array $viewTransformers = [];
+
     public function __construct(
         MetadataManagerInterface $metadataManager,
         TranslatorInterface $translator,
@@ -66,6 +72,11 @@ class ExportManager implements ExportManagerInterface
         $this->propertyAccessor = $propertyAccessor ?? PropertyAccess::createPropertyAccessor();
         $this->authChecker = $authChecker;
         $this->batchSize = $batchSize;
+    }
+
+    public function addViewTransformer(ExportViewTransformerInterface $viewTransformer): void
+    {
+        $this->viewTransformers[] = $viewTransformer;
     }
 
     public function exportQuery($rootMetadata, Query $query, array $fields = [], string $format = 'xlsx', bool $headerLabels = true): ExportedDataInterface
@@ -223,6 +234,14 @@ class ExportManager implements ExportManagerInterface
         try {
             $value = $this->propertyAccessor->getValue($object, $path);
 
+            foreach ($this->viewTransformers as $viewTransformer) {
+                if ($viewTransformer->support($column, $value)) {
+                    $value = $viewTransformer->transformValue($column, $value);
+
+                    break;
+                }
+            }
+
             return $value;
         } catch (UnexpectedTypeException | NoSuchPropertyException $e) {
             return null;
@@ -267,7 +286,8 @@ class ExportManager implements ExportManagerInterface
                     if ($this->isFieldExportable($fieldMeta)) {
                         $validFields[] = new ExportedColumn(
                             $labelPrefix.$this->getMetadataLabel($fieldMeta),
-                            $propertyPathPrefix.$fieldMeta->getName()
+                            $propertyPathPrefix.$fieldMeta->getName(),
+                            $fieldMeta
                         );
                     } else {
                         break;
@@ -297,7 +317,8 @@ class ExportManager implements ExportManagerInterface
 
                             $validFields[] = new ExportedColumn(
                                 $labelPrefix.$this->getMetadataLabel($fieldMeta),
-                                $propertyPathPrefix.$fieldMeta->getName()
+                                $propertyPathPrefix.$fieldMeta->getName(),
+                                $fieldMeta
                             );
                         }
                     } else {
@@ -311,7 +332,11 @@ class ExportManager implements ExportManagerInterface
 
         if (empty($validFields)) {
             $idFieldMeta = $metadata->getField($metadata->getFieldIdentifier());
-            $validFields[] = new ExportedColumn($this->getMetadataLabel($idFieldMeta), $idFieldMeta->getField());
+            $validFields[] = new ExportedColumn(
+                $this->getMetadataLabel($idFieldMeta),
+                $idFieldMeta->getField(),
+                $idFieldMeta
+            );
         }
 
         return $validFields;
