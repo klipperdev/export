@@ -107,12 +107,11 @@ class ExportManager implements ExportManagerInterface
             }
 
             while (!$endResult) {
-                $paginationQuery = clone $query;
-                $paginationQuery->setFirstResult($firstResult);
-                $paginationQuery->setMaxResults($this->batchSize);
+                $query->setFirstResult($firstResult);
+                $query->setMaxResults($this->batchSize);
                 $firstResult += $this->batchSize;
 
-                $paginator = new Paginator($paginationQuery);
+                $paginator = new Paginator($query);
                 $iterator = $paginator->getIterator();
                 $endResult = 0 === $iterator->count();
 
