@@ -34,6 +34,7 @@ use Symfony\Component\PropertyAccess\Exception\UnexpectedTypeException;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
+use function Symfony\Component\String\b;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
@@ -41,6 +42,8 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  */
 class ExportManager implements ExportManagerInterface
 {
+    private const DEFAULT_ROW_HEIGHT = 15;
+
     private MetadataManagerInterface $metadataManager;
 
     private TranslatorInterface $translator;
@@ -117,13 +120,34 @@ class ExportManager implements ExportManagerInterface
 
                 foreach ($iterator as $object) {
                     foreach ($columns as $i => $column) {
-                        try {
-                            $columnValue = $this->propertyAccessor->getValue($object, $column->getPropertyPath());
-                        } catch (UnexpectedTypeException | NoSuchPropertyException $e) {
-                            $columnValue = null;
+                        $columnValue = $this->getColumnValue($column, $object);
+
+                        if (\is_array($columnValue)) {
+                            foreach ($columnValue as $colVal) {
+                                // Replace value to force the auto conversion of value by sheet
+                                $prevVal = $sheet->getCellByColumnAndRow($i + 1, $line)->getValue();
+                                $sheet->setCellValueByColumnAndRow($i + 1, $line, $colVal);
+
+                                if (!empty($prevVal)) {
+                                    $colVal = $prevVal.PHP_EOL.$sheet->getCellByColumnAndRow($i + 1, $line)->getValue();
+                                    $sheet->setCellValueByColumnAndRow($i + 1, $line, $colVal);
+                                }
+                            }
+                        } else {
+                            $sheet->setCellValueByColumnAndRow($i + 1, $line, $columnValue);
                         }
 
-                        $sheet->setCellValueByColumnAndRow($i + 1, $line, $columnValue);
+                        $rowDim = $sheet->getRowDimension($line);
+                        $finalVal = $sheet->getCellByColumnAndRow($i + 1, $line)->getValue();
+                        $lineHeight = self::DEFAULT_ROW_HEIGHT;
+
+                        if (\is_string($finalVal)) {
+                            $lineHeight = self::DEFAULT_ROW_HEIGHT * \count(b($finalVal)->split("\n"));
+                        }
+
+                        if ($lineHeight > $rowDim->getRowHeight()) {
+                            $rowDim->setRowHeight($lineHeight);
+                        }
                     }
 
                     ++$line;
@@ -137,6 +161,71 @@ class ExportManager implements ExportManagerInterface
             return new ExportedData($spreadsheet, $writer, $mimeType[0], $columns);
         } catch (\Throwable $e) {
             throw new RuntimeException($e->getMessage(), $e->getCode(), $e);
+        }
+    }
+
+    /**
+     * @return null|mixed
+     */
+    private function getColumnValue(ExportedColumnInterface $column, object $object)
+    {
+        try {
+            $values = $this->getRecursivePathValue($column, $column->getPropertyPath(), $object, []);
+
+            if (empty($values)) {
+                $columnValue = null;
+            } elseif (1 === \count($values)) {
+                /** @var null|mixed $columnValue */
+                $columnValue = $values[0];
+            } else {
+                $columnValue = $values;
+            }
+        } catch (UnexpectedTypeException | NoSuchPropertyException $e) {
+            $columnValue = null;
+        }
+
+        return $columnValue;
+    }
+
+    /**
+     * @param null|mixed $value
+     */
+    private function getRecursivePathValue(ExportedColumnInterface $column, string $path, $value, array $values): array
+    {
+        $parts = explode('[i].', $path);
+
+        if (\count($parts) > 1) {
+            $currentPath = array_shift($parts);
+            $partValue = $this->getPathValue($column, $currentPath, $value);
+
+            if (\is_array($partValue) || $partValue instanceof \Countable) {
+                for ($i = 0; $i < \count($partValue); ++$i) {
+                    $itemValue = $partValue[$i];
+                    $values = $this->getRecursivePathValue($column, implode('[i].', $parts), $itemValue, $values);
+                }
+
+                return $values;
+            }
+
+            return $this->getRecursivePathValue($column, implode('[i].', $parts), $partValue, $values);
+        }
+
+        $values[] = $this->getPathValue($column, $path, $value);
+
+        return $values;
+    }
+
+    /**
+     * @return null|mixed
+     */
+    private function getPathValue(ExportedColumnInterface $column, string $path, ?object $object)
+    {
+        try {
+            $value = $this->propertyAccessor->getValue($object, $path);
+
+            return $value;
+        } catch (UnexpectedTypeException | NoSuchPropertyException $e) {
+            return null;
         }
     }
 
@@ -180,6 +269,8 @@ class ExportManager implements ExportManagerInterface
                             $labelPrefix.$this->getMetadataLabel($fieldMeta),
                             $propertyPathPrefix.$fieldMeta->getName()
                         );
+                    } else {
+                        break;
                     }
                 } elseif ($pathMetadata->hasAssociationByName($fieldPath)) {
                     $assoMeta = $pathMetadata->getAssociationByName($fieldPath);
@@ -188,6 +279,10 @@ class ExportManager implements ExportManagerInterface
 
                     if ($this->isAssociationExportable($assoMeta)) {
                         $pathMetadata = $this->metadataManager->get($assoMeta->getTarget());
+
+                        if (\in_array($assoMeta->getType(), ['one-to-many', 'many-to-many'], true)) {
+                            $propertyPathPrefix = rtrim($propertyPathPrefix, '.').'[i].';
+                        }
 
                         if ($i + 1 === \count($fieldPaths)) {
                             if ($pathMetadata->hasFieldByName($pathMetadata->getFieldLabel())) {
@@ -205,9 +300,11 @@ class ExportManager implements ExportManagerInterface
                                 $propertyPathPrefix.$fieldMeta->getName()
                             );
                         }
+                    } else {
+                        break;
                     }
                 } else {
-                    continue;
+                    break;
                 }
             }
         }
