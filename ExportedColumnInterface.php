@@ -11,8 +11,6 @@
 
 namespace Klipper\Component\Export;
 
-use Klipper\Component\Metadata\ChildMetadataInterface;
-
 /**
  * @author François Pluchino <francois.pluchino@klipper.dev>
  */
@@ -21,6 +19,4 @@ interface ExportedColumnInterface
     public function getLabel(): string;
 
     public function getPropertyPath(): string;
-
-    public function getMetadata(): ChildMetadataInterface;
 }

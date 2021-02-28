@@ -29,11 +29,11 @@ interface ExportManagerInterface
     /**
      * Build the export data.
      *
-     * @param ObjectMetadataInterface|string $rootMetadata
-     * @param string[]                       $fields       The selected field or associations paths
-     *                                                     By default, only the fields of the root metadata
-     * @param bool                           $headerLabels Check if the first column display the translated labels
-     *                                                     or the property paths
+     * @param ObjectMetadataInterface|string     $rootMetadata
+     * @param ExportedColumnInterface[]|string[] $fields       The selected field or associations paths
+     *                                                         By default, only the fields of the root metadata
+     * @param bool                               $headerLabels Check if the first column display the translated labels
+     *                                                         or the property paths
      *
      * @throws InvalidFormatException
      * @throws InvalidArgumentException

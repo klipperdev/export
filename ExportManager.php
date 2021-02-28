@@ -253,7 +253,7 @@ class ExportManager implements ExportManagerInterface
     }
 
     /**
-     * @param string[] $fields
+     * @param ExportedColumnInterface[]|string[] $fields
      *
      * @return ExportedColumn[]
      */
@@ -262,7 +262,11 @@ class ExportManager implements ExportManagerInterface
         $validFields = [];
         $addDefaultFields = false;
 
-        if (\count($fields) > 0 && '+' === $fields[0]) {
+        if (\count($fields) > 0
+            && ((\is_string($fields[0]) && '+' === $fields[0])
+                || ($fields[0] instanceof ExportedColumnInterface && '+' === $fields[0]->getPropertyPath())
+            )
+        ) {
             $addDefaultFields = true;
             array_shift($fields);
         }
@@ -278,6 +282,12 @@ class ExportManager implements ExportManagerInterface
         }
 
         foreach ($fields as $field) {
+            if ($field instanceof ExportedColumnInterface) {
+                $validFields[] = $field;
+
+                continue;
+            }
+
             $fieldPaths = explode('.', $field);
             $pathMetadata = $metadata;
             $labelPrefix = '';
@@ -290,8 +300,7 @@ class ExportManager implements ExportManagerInterface
                     if ($this->isFieldExportable($fieldMeta)) {
                         $validFields[] = new ExportedColumn(
                             $labelPrefix.$this->getMetadataLabel($fieldMeta),
-                            $propertyPathPrefix.$fieldMeta->getName(),
-                            $fieldMeta
+                            $propertyPathPrefix.$fieldMeta->getName()
                         );
                     } else {
                         break;
@@ -321,8 +330,7 @@ class ExportManager implements ExportManagerInterface
 
                             $validFields[] = new ExportedColumn(
                                 $labelPrefix.$this->getMetadataLabel($fieldMeta),
-                                $propertyPathPrefix.$fieldMeta->getName(),
-                                $fieldMeta
+                                $propertyPathPrefix.$fieldMeta->getName()
                             );
                         }
                     } else {
@@ -338,8 +346,7 @@ class ExportManager implements ExportManagerInterface
             $idFieldMeta = $metadata->getField($metadata->getFieldIdentifier());
             $validFields[] = new ExportedColumn(
                 $this->getMetadataLabel($idFieldMeta),
-                $idFieldMeta->getField(),
-                $idFieldMeta
+                $idFieldMeta->getField()
             );
         }
 
