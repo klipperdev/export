@@ -176,9 +176,11 @@ class ExportManager implements ExportManagerInterface
     }
 
     /**
+     * @param array|object $object
+     *
      * @return null|mixed
      */
-    private function getColumnValue(ExportedColumnInterface $column, object $object)
+    private function getColumnValue(ExportedColumnInterface $column, $object)
     {
         try {
             $values = $this->getRecursivePathValue($column, $column->getPropertyPath(), $object, []);
@@ -227,9 +229,11 @@ class ExportManager implements ExportManagerInterface
     }
 
     /**
+     * @param null|array|object $object
+     *
      * @return null|mixed
      */
-    private function getPathValue(ExportedColumnInterface $column, string $path, ?object $object)
+    private function getPathValue(ExportedColumnInterface $column, string $path, $object)
     {
         try {
             $value = $this->propertyAccessor->getValue($object, $path);
