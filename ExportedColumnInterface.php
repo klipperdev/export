@@ -16,7 +16,24 @@ namespace Klipper\Component\Export;
  */
 interface ExportedColumnInterface
 {
+    /**
+     * @return static
+     */
+    public static function create(string $propertyPath, ?string $label = null, ?string $transformer = null);
+
+    /**
+     * @return static
+     */
+    public function setLabel(string $label);
+
     public function getLabel(): string;
 
     public function getPropertyPath(): string;
+
+    /**
+     * @return static
+     */
+    public function setTransformer(?string $transformer);
+
+    public function getTransformer(): ?string;
 }

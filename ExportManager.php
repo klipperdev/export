@@ -288,6 +288,10 @@ class ExportManager implements ExportManagerInterface
                 continue;
             }
 
+            $fieldWithTransformer = explode('|', $field);
+            $field = $fieldWithTransformer[0];
+            $transformer = $fieldWithTransformer[1] ?? null;
+
             $fieldPaths = explode('.', $field);
             $pathMetadata = $metadata;
             $labelPrefix = '';
@@ -299,8 +303,9 @@ class ExportManager implements ExportManagerInterface
 
                     if ($this->isFieldExportable($fieldMeta)) {
                         $validFields[] = new ExportedColumn(
+                            $propertyPathPrefix.$fieldMeta->getName(),
                             $labelPrefix.$this->getMetadataLabel($fieldMeta),
-                            $propertyPathPrefix.$fieldMeta->getName()
+                            $transformer
                         );
                     } else {
                         break;
@@ -329,8 +334,9 @@ class ExportManager implements ExportManagerInterface
                             }
 
                             $validFields[] = new ExportedColumn(
+                                $propertyPathPrefix.$fieldMeta->getName(),
                                 $labelPrefix.$this->getMetadataLabel($fieldMeta),
-                                $propertyPathPrefix.$fieldMeta->getName()
+                                $transformer
                             );
                         }
                     } else {
@@ -345,8 +351,8 @@ class ExportManager implements ExportManagerInterface
         if (empty($validFields)) {
             $idFieldMeta = $metadata->getField($metadata->getFieldIdentifier());
             $validFields[] = new ExportedColumn(
-                $this->getMetadataLabel($idFieldMeta),
-                $idFieldMeta->getField()
+                $idFieldMeta->getField(),
+                $this->getMetadataLabel($idFieldMeta)
             );
         }
 
