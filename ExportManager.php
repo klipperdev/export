@@ -263,7 +263,8 @@ class ExportManager implements ExportManagerInterface
         $addDefaultFields = false;
 
         if (\count($fields) > 0
-            && ((\is_string($fields[0]) && '+' === $fields[0])
+            && (
+                (\is_string($fields[0]) && '+' === $fields[0])
                 || ($fields[0] instanceof ExportedColumnInterface && '+' === $fields[0]->getPropertyPath())
             )
         ) {
