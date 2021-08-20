@@ -11,6 +11,7 @@
 
 namespace Klipper\Component\Export;
 
+use Doctrine\ORM\EntityNotFoundException;
 use Doctrine\ORM\Query;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 use Klipper\Component\Export\Exception\ExportNotFoundException;
@@ -193,7 +194,7 @@ class ExportManager implements ExportManagerInterface
             } else {
                 $columnValue = $values;
             }
-        } catch (UnexpectedTypeException | NoSuchPropertyException $e) {
+        } catch (UnexpectedTypeException | NoSuchPropertyException | EntityNotFoundException $e) {
             $columnValue = null;
         }
 
