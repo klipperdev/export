@@ -194,7 +194,7 @@ class ExportManager implements ExportManagerInterface
             } else {
                 $columnValue = $values;
             }
-        } catch (UnexpectedTypeException | NoSuchPropertyException | EntityNotFoundException $e) {
+        } catch (UnexpectedTypeException|NoSuchPropertyException|EntityNotFoundException $e) {
             $columnValue = null;
         }
 
@@ -248,7 +248,7 @@ class ExportManager implements ExportManagerInterface
             }
 
             return $value;
-        } catch (UnexpectedTypeException | NoSuchPropertyException $e) {
+        } catch (UnexpectedTypeException|NoSuchPropertyException $e) {
             return null;
         }
     }
