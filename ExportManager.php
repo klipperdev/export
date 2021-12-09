@@ -112,6 +112,7 @@ class ExportManager implements ExportManagerInterface
             $line = 2;
             $endResult = false;
             $columns = $this->getExportedColumns($rootMetadata, $fields);
+            $rootClassname = $rootMetadata->getClass();
 
             foreach ($columns as $i => $column) {
                 $sheet->setCellValueByColumnAndRow(
@@ -131,6 +132,16 @@ class ExportManager implements ExportManagerInterface
                 $endResult = 0 === $iterator->count();
 
                 foreach ($iterator as $object) {
+                    if (\is_array($object) && !empty($object)) {
+                        foreach ($object as $objectItem) {
+                            if (\is_object($objectItem) && is_a($objectItem, $rootClassname)) {
+                                $object = $objectItem;
+
+                                break;
+                            }
+                        }
+                    }
+
                     foreach ($columns as $i => $column) {
                         $columnValue = $this->getColumnValue($column, $object);
 
