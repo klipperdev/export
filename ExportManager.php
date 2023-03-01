@@ -129,7 +129,7 @@ class ExportManager implements ExportManagerInterface
                 $query->setMaxResults($this->batchSize);
                 $firstResult += $this->batchSize;
 
-                $paginator = new Paginator($query);
+                $paginator = new Paginator($query, false);
                 $iterator = $paginator->getIterator();
                 $endResult = 0 === $iterator->count();
 
